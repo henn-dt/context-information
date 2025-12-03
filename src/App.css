@@ -1,5 +1,25 @@
 /* Surface Layers Visualizer Styles */
 
+/* Import NB Grotesk Font */
+@font-face {
+  font-family: 'NB Grotesk';
+  src: url('/static/fonts/NBGROTESK-REGULAR.OTF') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NB Grotesk';
+  src: url('/static/fonts/NBGROTESK-BOLD.OTF') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+/* Apply font globally */
+* {
+  font-family: 'NB Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
 #root {
   position: absolute;
   top: 0;
@@ -11,7 +31,6 @@
 #map-container {
   height: 100%;
   width: 100%;
-  background-color: lightgrey;
 }
 
 /* Center crosshair pointer */
@@ -65,7 +84,8 @@
   left: 0;
   width: 350px;
   height: 100%;
-  background: white;
+  background: #9CFF80;
+  /* Henn Green */
   padding: 20px;
   overflow-y: auto;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
@@ -129,6 +149,9 @@
   font-weight: bold;
   cursor: pointer;
   transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .generate-button:hover:not(:disabled) {
@@ -138,6 +161,27 @@
 .generate-button:disabled {
   background: #ccc;
   cursor: not-allowed;
+}
+
+/* Update Map Button */
+.update-map-button {
+  width: 100%;
+  padding: 10px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.update-map-button:hover {
+  background: #0056b3;
 }
 
 .status {
@@ -200,6 +244,9 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .download-button.sealed {

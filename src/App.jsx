@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import './App.css'
+import { Globe, Thermometer, Download, Image as ImageIcon, MapPin, ExternalLink } from 'lucide-react'
 
 const INITIAL_CENTER = [6.84105, 51.17984] // [lon, lat]
 const INITIAL_ZOOM = 14
@@ -34,7 +35,7 @@ function App() {
   const [sealedOpacity, setSealedOpacity] = useState(60)
   const [unsealedOpacity, setUnsealedOpacity] = useState(80)
   const [temperatureOpacity, setTemperatureOpacity] = useState(70)
-  
+
   // Temperature scale control
   const [tempScaleMin, setTempScaleMin] = useState(10)
   const [tempScaleMax, setTempScaleMax] = useState(40)
@@ -45,7 +46,7 @@ function App() {
   // Initialize map
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
-    
+
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
       center: center,
@@ -59,7 +60,7 @@ function App() {
       const mapZoom = mapRef.current.getZoom()
       setCenter([mapCenter.lng, mapCenter.lat])
       setZoom(mapZoom)
-      
+
       // Update input fields as user pans the map
       setLat(mapCenter.lat)
       setLon(mapCenter.lng)
@@ -77,7 +78,7 @@ function App() {
           const props = feature.properties
           let featureType = 'Unknown'
           let layerType = feature.layer.id === 'sealed-layer' ? 'Sealed' : 'Unsealed'
-          
+
           if (props.building) featureType = 'Building'
           else if (props.highway) featureType = `Road (${props.highway})`
           else if (props.railway) featureType = 'Railway'
@@ -86,7 +87,7 @@ function App() {
           else if (props.landuse) featureType = props.landuse.charAt(0).toUpperCase() + props.landuse.slice(1).replace('_', ' ')
           else if (props.leisure) featureType = props.leisure.charAt(0).toUpperCase() + props.leisure.slice(1).replace('_', ' ')
           else if (props.natural) featureType = props.natural.charAt(0).toUpperCase() + props.natural.slice(1).replace('_', ' ')
-          
+
           return {
             type: featureType,
             layer: layerType,
@@ -94,16 +95,16 @@ function App() {
             allProps: props
           }
         })
-        
+
         // Save ALL features to state for sidebar display
         setClickedFeature(allFeatures)
-        
+
         // Create popup content for FIRST feature only
         const firstFeature = features[0]
         const props = firstFeature.properties
         let featureType = allFeatures[0].type
         let layerType = allFeatures[0].layer
-        
+
         let popupContent = `<div style="font-family: Arial, sans-serif;">
           <h3 style="margin: 0 0 8px 0; color: ${firstFeature.layer.id === 'sealed-layer' ? '#dc3545' : '#28a745'};">
             ${featureType}
@@ -111,23 +112,23 @@ function App() {
           <p style="margin: 0; font-size: 12px; color: #666;">
             <strong>Type:</strong> ${layerType} Surface
           </p>`
-        
+
         // Add name if available
         if (props.name) {
           popupContent += `<p style="margin: 4px 0 0 0; font-size: 12px; color: #666;">
             <strong>Name:</strong> ${props.name}
           </p>`
         }
-        
+
         // Add count if multiple features
         if (features.length > 1) {
           popupContent += `<p style="margin: 8px 0 0 0; font-size: 11px; color: #999; font-style: italic;">
             +${features.length - 1} more feature(s) - check sidebar
           </p>`
         }
-        
+
         popupContent += `</div>`
-        
+
         new mapboxgl.Popup()
           .setLngLat(e.lngLat)
           .setHTML(popupContent)
@@ -153,13 +154,13 @@ function App() {
   useEffect(() => {
     if (!mapRef.current) return
     const map = mapRef.current
-    
+
     const addLayers = () => {
       // Add SEALED layer first (bottom)
       if (sealedData) {
         if (map.getLayer('sealed-layer')) map.removeLayer('sealed-layer')
         if (map.getSource('sealed')) map.removeSource('sealed')
-        
+
         map.addSource('sealed', { type: 'geojson', data: sealedData })
         map.addLayer({
           id: 'sealed-layer',
@@ -171,12 +172,12 @@ function App() {
           }
         })
       }
-      
+
       // Add UNSEALED layer second (top)
       if (unsealedData) {
         if (map.getLayer('unsealed-layer')) map.removeLayer('unsealed-layer')
         if (map.getSource('unsealed')) map.removeSource('unsealed')
-        
+
         map.addSource('unsealed', { type: 'geojson', data: unsealedData })
         map.addLayer({
           id: 'unsealed-layer',
@@ -193,7 +194,7 @@ function App() {
       if (temperatureData && tempStats) {
         if (map.getLayer('temperature-layer')) map.removeLayer('temperature-layer')
         if (map.getSource('temperature')) map.removeSource('temperature')
-        
+
         map.addSource('temperature', { type: 'geojson', data: temperatureData })
         map.addLayer({
           id: 'temperature-layer',
@@ -294,14 +295,14 @@ function App() {
       }
 
       const data = await response.json()
-      
+
       console.log('📊 API Response:', {
         sealed_count: data.sealed_count,
         unsealed_count: data.unsealed_count,
         sealed_features: data.sealed_geojson?.features?.length || 0,
         unsealed_features: data.unsealed_geojson?.features?.length || 0
       })
-      
+
       setSealedData(data.sealed_geojson)
       setUnsealedData(data.unsealed_geojson)
       setStatus(`Success! Found ${data.sealed_count} sealed and ${data.unsealed_count} unsealed features.`)
@@ -344,7 +345,7 @@ function App() {
       }
 
       const data = await response.json()
-      
+
       console.log('🌡️ Temperature Response:', {
         features: data.temperature_data?.features?.length || 0,
         min: data.min_temp,
@@ -352,7 +353,7 @@ function App() {
         mean: data.mean_temp,
         date: data.image_date
       })
-      
+
       // Data is already in GeoJSON format from backend
       setTemperatureData(data.temperature_data)
       setTempStats({
@@ -377,35 +378,68 @@ function App() {
 
   // Download GeoJSON
   const downloadGeoJSON = (data, filename) => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    link.click()
-    URL.revokeObjectURL(url)
+    try {
+      console.log('Download initiated:', filename)
+      console.log('Data exists:', !!data)
+
+      if (!data) {
+        console.error('No data to download')
+        return
+      }
+
+      const jsonString = JSON.stringify(data, null, 2)
+      console.log('JSON size:', jsonString.length, 'bytes')
+
+      const blob = new Blob([jsonString], { type: 'application/json' })
+      console.log('Blob created:', blob.size, 'bytes')
+
+      const url = URL.createObjectURL(blob)
+      console.log('Blob URL:', url)
+
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      link.setAttribute('download', filename) // Explicitly set download attribute
+      link.style.display = 'none'
+
+      document.body.appendChild(link)
+      console.log('Link appended to body')
+
+      // Force download
+      link.click()
+      console.log('Link clicked')
+
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        console.log('Cleanup complete')
+      }, 100)
+    } catch (error) {
+      console.error('Download error:', error)
+    }
   }
 
   // Helper function to convert GeoJSON to PNG image
   const geojsonToPNG = (geojson, color, filename) => {
     if (!mapRef.current || !geojson) return
-    
+
     const map = mapRef.current
     const canvas = document.createElement('canvas')
     const mapCanvas = map.getCanvas()
-    
+
     // Match map dimensions
     canvas.width = mapCanvas.width
     canvas.height = mapCanvas.height
     const ctx = canvas.getContext('2d')
-    
+
     // Transparent background (no fill)
     // ctx is already transparent by default
-    
+
     // Calculate bounding box of all features to center them
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
     const projectedFeatures = []
-    
+
     geojson.features.forEach(feature => {
       if (feature.geometry.type === 'Polygon') {
         const coords = feature.geometry.coordinates[0]
@@ -420,18 +454,18 @@ function App() {
         projectedFeatures.push(projectedCoords)
       }
     })
-    
+
     // Calculate offset to center polygons
     const boundsWidth = maxX - minX
     const boundsHeight = maxY - minY
     const offsetX = (canvas.width - boundsWidth) / 2 - minX
     const offsetY = (canvas.height - boundsHeight) / 2 - minY
-    
+
     // Set polygon style
     ctx.fillStyle = color
     ctx.strokeStyle = color
     ctx.lineWidth = 1
-    
+
     // Draw each feature with centering offset
     projectedFeatures.forEach(coords => {
       ctx.beginPath()
@@ -448,23 +482,26 @@ function App() {
       ctx.fill()
       ctx.stroke()
     })
-    
+
     // Convert to blob and download (PNG supports transparency)
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
       link.download = filename
+      link.style.display = 'none'
+      document.body.appendChild(link)
       link.click()
-      URL.revokeObjectURL(url)
+      document.body.removeChild(link)
+      setTimeout(() => URL.revokeObjectURL(url), 100)
     }, 'image/png')
   }
 
   // Download PNG - Unsealed layer only (polygons only, transparent background)
   const downloadUnsealedPNG = () => {
     geojsonToPNG(
-      unsealedData, 
-      '#00ff00', 
+      unsealedData,
+      '#00ff00',
       `unsealed_polygons_${lat.toFixed(5)}_${lon.toFixed(5)}.png`
     )
   }
@@ -472,8 +509,8 @@ function App() {
   // Download PNG - Sealed layer only (polygons only, transparent background)
   const downloadSealedPNG = () => {
     geojsonToPNG(
-      sealedData, 
-      '#dc3545', 
+      sealedData,
+      '#dc3545',
       `sealed_polygons_${lat.toFixed(5)}_${lon.toFixed(5)}.png`
     )
   }
@@ -481,9 +518,9 @@ function App() {
   // Download PNG - Combined (satellite + both layers at current opacity)
   const downloadCombinedPNG = () => {
     if (!mapRef.current) return
-    
+
     const map = mapRef.current
-    
+
     // Function to capture and download
     const captureMap = () => {
       const canvas = map.getCanvas()
@@ -491,7 +528,7 @@ function App() {
         console.error('Canvas not available')
         return
       }
-      
+
       canvas.toBlob((blob) => {
         if (!blob) {
           console.error('Failed to create blob')
@@ -501,11 +538,14 @@ function App() {
         const link = document.createElement('a')
         link.href = url
         link.download = `combined_${lat.toFixed(5)}_${lon.toFixed(5)}.png`
+        link.style.display = 'none'
+        document.body.appendChild(link)
         link.click()
-        URL.revokeObjectURL(url)
+        document.body.removeChild(link)
+        setTimeout(() => URL.revokeObjectURL(url), 100)
       }, 'image/png')
     }
-    
+
     // Check if map is already idle
     if (map.loaded() && !map.isMoving()) {
       // Map is ready, capture immediately
@@ -519,6 +559,15 @@ function App() {
   return (
     <>
       <div className="sidebar">
+        {/* Logo Header */}
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <img
+            src="/static/images/logo-HENN.png"
+            alt="HENN Logo"
+            style={{ maxWidth: '120px', height: 'auto' }}
+          />
+        </div>
+
         <h2>Surface Layers Visualizer</h2>
         <p style={{ fontSize: '12px', color: '#666', margin: '0 0 15px 0' }}>
           Fetch sealed and unsealed surface layers from OpenStreetMap
@@ -527,12 +576,24 @@ function App() {
         {/* Location Settings */}
         <div className="section">
           <h3>Location Settings</h3>
-          
+
+          <p style={{ fontSize: '11px', color: '#666', marginBottom: '12px' }}>
+            Enter coordinates manually or use{' '}
+            <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" style={{ color: '#007bff', textDecoration: 'none' }}>
+              Google Maps <ExternalLink size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />
+            </a>
+            {' / '}
+            <a href="https://www.openstreetmap.org" target="_blank" rel="noopener noreferrer" style={{ color: '#007bff', textDecoration: 'none' }}>
+              OpenStreetMap <ExternalLink size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />
+            </a>
+            {' '}to find coordinates.
+          </p>
+
           <label>
             Latitude
-            <input 
-              type="number" 
-              value={lat} 
+            <input
+              type="number"
+              value={lat}
               onChange={(e) => setLat(parseFloat(e.target.value))}
               step="0.000001"
               min="-90"
@@ -542,9 +603,9 @@ function App() {
 
           <label>
             Longitude
-            <input 
-              type="number" 
-              value={lon} 
+            <input
+              type="number"
+              value={lon}
               onChange={(e) => setLon(parseFloat(e.target.value))}
               step="0.000001"
               min="-180"
@@ -552,11 +613,25 @@ function App() {
             />
           </label>
 
+          <button
+            onClick={() => {
+              mapRef.current.flyTo({
+                center: [lon, lat],
+                zoom: 14
+              })
+            }}
+            className="update-map-button"
+            style={{ marginBottom: '12px' }}
+          >
+            <MapPin size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+            Update Map
+          </button>
+
           <label>
             Area Size (km): {sizeKm}
-            <input 
-              type="range" 
-              value={sizeKm} 
+            <input
+              type="range"
+              value={sizeKm}
               onChange={(e) => setSizeKm(parseFloat(e.target.value))}
               min="0.5"
               max="10"
@@ -564,21 +639,23 @@ function App() {
             />
           </label>
 
-          <button 
-            onClick={fetchLayers} 
+          <button
+            onClick={fetchLayers}
             disabled={loading}
             className="generate-button"
           >
-            {loading ? 'Loading...' : '🌍 Generate Layers'}
+            <Globe size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+            {loading ? 'Loading...' : 'Generate Layers'}
           </button>
 
-          <button 
+          <button
             onClick={fetchTemperature}
             disabled={loading}
             className="generate-button"
             style={{ marginTop: '10px', backgroundColor: '#ff6b35' }}
           >
-            {loading ? 'Loading...' : '🌡️ Fetch Temperature'}
+            <Thermometer size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+            {loading ? 'Loading...' : 'Fetch Temperature'}
           </button>
 
           {status && (
@@ -592,11 +669,11 @@ function App() {
         {(sealedData || unsealedData) && (
           <div className="section">
             <h3>Surface Layer Controls</h3>
-            
+
             <div className="layer-control">
               <label className="checkbox-label">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={showSealed}
                   onChange={(e) => setShowSealed(e.target.checked)}
                 />
@@ -604,8 +681,8 @@ function App() {
               </label>
               <label className="slider-label">
                 Opacity: {sealedOpacity}%
-                <input 
-                  type="range" 
+                <input
+                  type="range"
                   value={sealedOpacity}
                   onChange={(e) => setSealedOpacity(parseInt(e.target.value))}
                   min="0"
@@ -617,8 +694,8 @@ function App() {
 
             <div className="layer-control">
               <label className="checkbox-label">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={showUnsealed}
                   onChange={(e) => setShowUnsealed(e.target.checked)}
                 />
@@ -626,8 +703,8 @@ function App() {
               </label>
               <label className="slider-label">
                 Opacity: {unsealedOpacity}%
-                <input 
-                  type="range" 
+                <input
+                  type="range"
                   value={unsealedOpacity}
                   onChange={(e) => setUnsealedOpacity(parseInt(e.target.value))}
                   min="0"
@@ -642,14 +719,14 @@ function App() {
               <div style={{ marginBottom: '10px' }}>
                 <strong style={{ color: '#dc3545' }}>🔴 Sealed Surfaces:</strong>
                 <div style={{ marginLeft: '15px', marginTop: '3px', lineHeight: '1.6' }}>
-                  Buildings, Parking lots, Roads/Highways, Railways, Runways/Helipads, 
+                  Buildings, Parking lots, Roads/Highways, Railways, Runways/Helipads,
                   Industrial/Commercial areas, Sports facilities (pitches, tracks), Construction sites
                 </div>
               </div>
               <div>
                 <strong style={{ color: '#28a745' }}>🟢 Unsealed Surfaces:</strong>
                 <div style={{ marginLeft: '15px', marginTop: '3px', lineHeight: '1.6' }}>
-                  Forests, Parks, Gardens, Grasslands, Farmland, Meadows, Orchards, Vineyards, 
+                  Forests, Parks, Gardens, Grasslands, Farmland, Meadows, Orchards, Vineyards,
                   Wetlands, Beaches, Allotments, Cemeteries, Golf courses, Nature reserves
                 </div>
               </div>
@@ -661,11 +738,11 @@ function App() {
         {temperatureData && (
           <div className="section">
             <h3>Temperature Controls</h3>
-            
+
             <div className="layer-control">
               <label className="checkbox-label">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={showTemperature}
                   onChange={(e) => setShowTemperature(e.target.checked)}
                 />
@@ -673,8 +750,8 @@ function App() {
               </label>
               <label className="slider-label">
                 Opacity: {temperatureOpacity}%
-                <input 
-                  type="range" 
+                <input
+                  type="range"
                   value={temperatureOpacity}
                   onChange={(e) => setTemperatureOpacity(parseInt(e.target.value))}
                   min="0"
@@ -683,7 +760,7 @@ function App() {
                 />
               </label>
             </div>
-            
+
             {/* Temperature Scale Controls */}
             <div style={{ marginTop: '12px', padding: '8px', backgroundColor: '#f8f9fa', borderRadius: '4px', border: '1px solid #ddd' }}>
               <div style={{ fontSize: '11px', fontWeight: 'bold', marginBottom: '8px', color: '#333' }}>
@@ -691,8 +768,8 @@ function App() {
               </div>
               <label className="slider-label">
                 Min: {tempScaleMin}°C
-                <input 
-                  type="range" 
+                <input
+                  type="range"
                   value={tempScaleMin}
                   onChange={(e) => setTempScaleMin(parseInt(e.target.value))}
                   min={tempStats ? Math.floor(tempStats.min - 5) : 0}
@@ -701,8 +778,8 @@ function App() {
               </label>
               <label className="slider-label">
                 Max: {tempScaleMax}°C
-                <input 
-                  type="range" 
+                <input
+                  type="range"
                   value={tempScaleMax}
                   onChange={(e) => setTempScaleMax(parseInt(e.target.value))}
                   min={tempScaleMin + 1}
@@ -713,7 +790,7 @@ function App() {
                 💡 Adjust to enhance color contrast
               </div>
             </div>
-            
+
             {/* Temperature Statistics */}
             {tempStats && (
               <div style={{ fontSize: '11px', color: '#666', marginTop: '8px', padding: '8px', backgroundColor: '#fff5f0', borderRadius: '4px' }}>
@@ -730,15 +807,15 @@ function App() {
             <div style={{ marginTop: '12px', fontSize: '11px', color: '#666' }}>
               <strong style={{ color: '#ff6b35' }}>🌡️ Surface Temperature:</strong>
               <div style={{ marginLeft: '15px', marginTop: '6px' }}>
-                <div style={{ 
-                  height: '20px', 
+                <div style={{
+                  height: '20px',
                   background: 'linear-gradient(to right, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000)',
                   borderRadius: '3px',
                   border: '1px solid #ddd'
                 }}></div>
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
                   marginTop: '3px',
                   fontSize: '10px',
                   color: '#333',
@@ -761,10 +838,10 @@ function App() {
             <h3>📍 Clicked Location ({Array.isArray(clickedFeature) ? clickedFeature.length : 1} feature{Array.isArray(clickedFeature) ? 's' : ''})</h3>
             <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
               {(Array.isArray(clickedFeature) ? clickedFeature : [clickedFeature]).map((feature, idx) => (
-                <div 
+                <div
                   key={idx}
-                  style={{ 
-                    padding: '12px', 
+                  style={{
+                    padding: '12px',
                     marginBottom: idx < (Array.isArray(clickedFeature) ? clickedFeature.length : 1) - 1 ? '8px' : '0',
                     backgroundColor: feature.layer === 'Sealed' ? '#fff5f5' : '#f0fff4',
                     borderLeft: `4px solid ${feature.layer === 'Sealed' ? '#dc3545' : '#28a745'}`,
@@ -772,8 +849,8 @@ function App() {
                   }}
                 >
                   <div style={{ marginBottom: '8px' }}>
-                    <strong style={{ 
-                      fontSize: '15px', 
+                    <strong style={{
+                      fontSize: '15px',
                       color: feature.layer === 'Sealed' ? '#dc3545' : '#28a745'
                     }}>
                       {idx + 1}. {feature.type}
@@ -793,10 +870,10 @@ function App() {
                       <summary style={{ fontSize: '11px', color: '#666', cursor: 'pointer' }}>
                         View all properties ({Object.keys(feature.allProps).length})
                       </summary>
-                      <div style={{ 
-                        marginTop: '6px', 
-                        padding: '8px', 
-                        backgroundColor: 'rgba(0,0,0,0.05)', 
+                      <div style={{
+                        marginTop: '6px',
+                        padding: '8px',
+                        backgroundColor: 'rgba(0,0,0,0.05)',
                         borderRadius: '3px',
                         fontSize: '10px',
                         fontFamily: 'monospace'
@@ -822,22 +899,24 @@ function App() {
         {(sealedData || unsealedData) && (
           <div className="section">
             <h3>Download Data (GeoJSON)</h3>
-            
+
             {sealedData && (
-              <button 
+              <button
                 onClick={() => downloadGeoJSON(sealedData, `sealed_${lat}_${lon}.geojson`)}
                 className="download-button sealed"
               >
-                📥 Sealed Surfaces GeoJSON
+                <Download size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                Sealed Surfaces GeoJSON
               </button>
             )}
 
             {unsealedData && (
-              <button 
+              <button
                 onClick={() => downloadGeoJSON(unsealedData, `unsealed_${lat}_${lon}.geojson`)}
                 className="download-button unsealed"
               >
-                📥 Unsealed Surfaces GeoJSON
+                <Download size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                Unsealed Surfaces GeoJSON
               </button>
             )}
           </div>
@@ -850,36 +929,39 @@ function App() {
             <p style={{ fontSize: '11px', color: '#666', marginBottom: '10px' }}>
               Export map view of the selected area as PNG
             </p>
-            
+
             {sealedData && (
-              <button 
+              <button
                 onClick={downloadSealedPNG}
                 className="download-button sealed"
                 style={{ marginBottom: '8px' }}
               >
-                🖼️ Sealed Only (PNG)
+                <ImageIcon size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                Sealed Only (PNG)
               </button>
             )}
 
             {unsealedData && (
-              <button 
+              <button
                 onClick={downloadUnsealedPNG}
                 className="download-button unsealed"
                 style={{ marginBottom: '8px' }}
               >
-                🖼️ Unsealed Only (PNG)
+                <ImageIcon size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                Unsealed Only (PNG)
               </button>
             )}
 
-            <button 
+            <button
               onClick={downloadCombinedPNG}
               className="download-button"
-              style={{ 
+              style={{
                 backgroundColor: '#007bff',
                 marginBottom: '8px'
               }}
             >
-              🌍 Screenshot of View
+              <Globe size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+              Screenshot of View
             </button>
           </div>
         )}

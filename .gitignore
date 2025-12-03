@@ -36,6 +36,8 @@ ENV/
 
 # Google Earth Engine credentials (NEVER commit these!)
 MapLayers/*.json
+MapLayers/OverpassOSM.md
+MapLayers/*.md
 MapLayers/*-key.json
 MapLayers/service-account*.json
 
@@ -49,3 +51,9 @@ MapLayers/service-account*.json
 
 # Windows
 Thumbs.db
+
+# Static files
+static/
+
+AZURE_DEPLOYMENT.md
+static 

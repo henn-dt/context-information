@@ -2,7 +2,7 @@
 
 Interactive web application for analyzing sealed/unsealed surfaces and surface temperatures using OpenStreetMap data and Google Earth Engine satellite imagery.
 
-![Surface Analysis Demo](public/SealUnsealed.png)
+![Surface Analysis Demo](public/app.png)
 
 ## Features
 
@@ -14,7 +14,7 @@ Interactive web application for analyzing sealed/unsealed surfaces and surface t
 
 ### 🌡️ Temperature Analysis
 
-![Temperature Analysis Demo](public/SurfTemp.png)
+![Temperature Analysis Demo](public/Temp.png)
 
 - **Satellite thermal data** from Landsat 8/9 (Google Earth Engine)
 - **Continuous temperature surface** with color-coded visualization
