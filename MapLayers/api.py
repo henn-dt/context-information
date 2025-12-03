@@ -5,31 +5,69 @@ Optimized for fast data fetching and processing
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 import httpx
 import math
 import ee
 import os
+import json
+import tempfile
 from typing import Tuple, Dict, List
 from pathlib import Path
 
 # Initialize Earth Engine
-SERVICE_ACCOUNT_FILE = Path(__file__).parent / "surface-temp-api-61c5f67f7673.json"
-credentials = ee.ServiceAccountCredentials(
-    'surface-temp@surface-temp-api.iam.gserviceaccount.com',
-    str(SERVICE_ACCOUNT_FILE)
-)
-ee.Initialize(credentials)
+# Check for environment variable first (for production)
+GOOGLE_CREDENTIALS_JSON = os.getenv('GOOGLE_CREDENTIALS_JSON')
+
+if GOOGLE_CREDENTIALS_JSON:
+    # Production: Use credentials from environment variable
+    print("[INFO] Using Google credentials from environment variable")
+    credentials_dict = json.loads(GOOGLE_CREDENTIALS_JSON)
+    
+    # Write to temporary file
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as temp_file:
+        json.dump(credentials_dict, temp_file)
+        temp_credentials_path = temp_file.name
+    
+    credentials = ee.ServiceAccountCredentials(
+        credentials_dict['client_email'],
+        temp_credentials_path
+    )
+    ee.Initialize(credentials)
+    
+    # Clean up temp file
+    os.unlink(temp_credentials_path)
+else:
+    # Development: Use local file
+    print("[INFO] Using local Google credentials file")
+    SERVICE_ACCOUNT_FILE = Path(__file__).parent / "surface-temp-api-61c5f67f7673.json"
+    credentials = ee.ServiceAccountCredentials(
+        'surface-temp@surface-temp-api.iam.gserviceaccount.com',
+        str(SERVICE_ACCOUNT_FILE)
+    )
+    ee.Initialize(credentials)
 
 app = FastAPI(title="Surface Layers API")
 
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static files (built React app)
+STATIC_DIR = Path(__file__).parent.parent / "dist"
+if STATIC_DIR.exists():
+    print(f"[INFO] Serving static files from: {STATIC_DIR}")
+    app.mount("/static", StaticFiles(directory=Path(__file__).parent.parent / "static"), name="static")
+    app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
+else:
+    print("[WARNING] Static directory not found. Run 'npm run build' first.")
 
 OVERPASS_URLS = [
     "https://overpass-api.de/api/interpreter",
@@ -307,9 +345,31 @@ async def get_surface_temperature(request: LayerRequest):
         raise HTTPException(status_code=500, detail=f"Error fetching temperature data: {str(e)}")
 
 
+@app.get("/")
+async def root():
+    """Serve the React app or API info"""
+    index_file = Path(__file__).parent.parent / "dist" / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    return {"message": "Surface Layers API", "status": "running", "note": "Build frontend with 'npm run build'"}
+
+# Catch-all route for client-side routing
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    """Serve React app for all non-API routes"""
+    # Skip API routes
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="API endpoint not found")
+    
+    index_file = Path(__file__).parent.parent / "dist" / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    raise HTTPException(status_code=404, detail="Frontend not built")
+
+
 if __name__ == "__main__":
     import uvicorn
-    print("🚀 Starting Surface Layers API server...")
-    print("📍 API will be available at: http://localhost:8000")
-    print("📖 API docs at: http://localhost:8000/docs")
+    print("[INFO] Starting Surface Layers API server...")
+    print("[INFO] API will be available at: http://localhost:8000")
+    print("[INFO] API docs at: http://localhost:8000/docs")
     uvicorn.run(app, host="0.0.0.0", port=8000)
