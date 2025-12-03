@@ -33,6 +33,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend code
 COPY MapLayers ./MapLayers
+
+# Copy static folder if it exists (optional)
 COPY static ./static
 
 # Copy built frontend from stage 1
