@@ -2,6 +2,10 @@
 # Stage 1: Build the React frontend
 FROM node:20-alpine AS frontend-builder
 
+# Build argument for Mapbox token (required at build time for Vite)
+ARG VITE_MAPBOX_TOKEN
+ENV VITE_MAPBOX_TOKEN=$VITE_MAPBOX_TOKEN
+
 WORKDIR /app
 
 # Copy package files

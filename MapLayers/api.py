@@ -191,10 +191,6 @@ def classify_and_convert(osm_data: Dict) -> Tuple[Dict, Dict]:
         {"type": "FeatureCollection", "features": unsealed_features}
     )
 
-@app.get("/")
-async def root():
-    return {"message": "Surface Layers API", "status": "running"}
-
 @app.post("/api/generate-layers", response_model=LayerResponse)
 async def generate_layers(request: LayerRequest):
     """Generate sealed and unsealed surface layers from OpenStreetMap data."""
