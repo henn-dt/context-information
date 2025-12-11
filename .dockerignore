@@ -1,4 +1,59 @@
+# ===========================================
+# Docker Ignore File for Context Info App
+# ===========================================
+# These files will NOT be copied into the Docker image
+
+# -----------------------------------------
+# Dependencies (rebuilt inside container)
+# -----------------------------------------
 node_modules
+__pycache__
+*.pyc
+.Python
+env/
+venv/
+.venv
+
+# -----------------------------------------
+# Build outputs (rebuilt inside container)
+# -----------------------------------------
 dist
+dist-ssr
+
+# -----------------------------------------
+# SECRETS - NEVER include in image!
+# -----------------------------------------
 .env
+.env.*
+!.env.example
+MapLayers/*.json
+*.json
+!package.json
+!package-lock.json
+
+# -----------------------------------------
+# Git and IDE files
+# -----------------------------------------
+.git
+.gitignore
+.github
+.vscode
+.idea
+*.md
+!README.md
+
+# -----------------------------------------
+# Logs and temp files
+# -----------------------------------------
 *.log
+*.tmp
+*.temp
+Thumbs.db
+.DS_Store
+
+# -----------------------------------------
+# Docker files (no need to copy)
+# -----------------------------------------
+Dockerfile
+docker-compose*.yml
+nginx.conf*

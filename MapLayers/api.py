@@ -26,7 +26,7 @@ if GOOGLE_CREDENTIALS_JSON:
     print("[INFO] Using Google credentials from environment variable")
     credentials_dict = json.loads(GOOGLE_CREDENTIALS_JSON)
     
-    # Write to temporary file
+    # Write to temporary file (ee.ServiceAccountCredentials requires a file path)
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as temp_file:
         json.dump(credentials_dict, temp_file)
         temp_credentials_path = temp_file.name
@@ -40,21 +40,35 @@ if GOOGLE_CREDENTIALS_JSON:
     # Clean up temp file
     os.unlink(temp_credentials_path)
 else:
-    # Development: Use local file
-    print("[INFO] Using local Google credentials file")
-    SERVICE_ACCOUNT_FILE = Path(__file__).parent / "surface-temp-api-61c5f67f7673.json"
-    credentials = ee.ServiceAccountCredentials(
-        'surface-temp@surface-temp-api.iam.gserviceaccount.com',
-        str(SERVICE_ACCOUNT_FILE)
-    )
-    ee.Initialize(credentials)
+    # Development: Look for any .json file in MapLayers directory
+    # This allows developers to use their own credentials without hardcoding
+    json_files = list(Path(__file__).parent.glob("*.json"))
+    if json_files:
+        service_account_file = json_files[0]
+        print(f"[INFO] Using local credentials file: {service_account_file.name}")
+        
+        # Read the file to get client_email dynamically
+        with open(service_account_file, 'r') as f:
+            local_creds = json.load(f)
+        
+        credentials = ee.ServiceAccountCredentials(
+            local_creds['client_email'],
+            str(service_account_file)
+        )
+        ee.Initialize(credentials)
+    else:
+        print("[WARNING] No Google credentials found!")
+        print("[WARNING] Set GOOGLE_CREDENTIALS_JSON env var or add a .json file to MapLayers/")
+        print("[WARNING] Temperature API will not work without credentials.")
 
 app = FastAPI(title="Surface Layers API")
 
 # CORS middleware
+# Read allowed origins from environment variable, fallback to permissive defaults
+ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', '*').split(',')
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "*"],
+    allow_origins=ALLOWED_ORIGINS if ALLOWED_ORIGINS != ['*'] else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

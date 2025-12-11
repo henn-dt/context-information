@@ -56,3 +56,4 @@ Thumbs.db
 static/bootstrap
 
 AZURE_DEPLOYMENT.md
+nginx.conf.example

@@ -97,7 +97,7 @@ VITE_MAPBOX_TOKEN=your_actual_token_here
 1. Create a service account in Google Cloud Console
 2. Enable Earth Engine API
 3. Download the JSON key file
-4. Place it in `MapLayers/` folder
+4. Place it in `MapLayers/` folder. Or pass it as environment variable in .env as "GOOGLE_CREDENTIALS_JSON=one_line_json" (safer for production)
 5. Update the path in `MapLayers/api.py`:
 ```python
 service_account = 'your-service-account@project.iam.gserviceaccount.com'
@@ -206,4 +206,4 @@ Built with:
 
 ---
 
-**Last Updated**: November 2025
+**Last Updated**: 11 December 2025
