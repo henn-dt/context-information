@@ -277,7 +277,7 @@ function App() {
     setStatus('Fetching data from OpenStreetMap...')
 
     try {
-      const response = await fetch('/api/generate-layers', {
+      const response = await fetch('context-info/api/generate-layers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -327,7 +327,7 @@ function App() {
     setStatus('Fetching temperature data from Google Earth Engine...')
 
     try {
-      const response = await fetch('/api/surface-temperature', {
+      const response = await fetch('/context-info/api/surface-temperature', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
